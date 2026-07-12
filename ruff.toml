@@ -1,0 +1,95 @@
+target-version = "py313"
+line-length = 120
+preview = true
+
+[lint]
+select = ["ALL"]
+ignore = [
+    # ── Permanent ─────────────────────────────────────────────────────────
+    # Type annotations — basedpyright strict mode handles this
+    "ANN",
+    # No docstrings, no copyright headers
+    "D",
+    "DOC",
+    "CPY",
+    # TODO/FIXME comment formatting
+    "TD",
+    "FIX",
+    # Exception message ergonomics — literal-indirection and custom-class churn without benefit
+    "EM101",
+    "EM102",
+    "TRY003",
+    # Class attribute names never conflict with builtins via self.x
+    "A003",
+    # Function-size counters — C901 already covers structural complexity
+    "PLR0911",
+    "PLR0912",
+    "PLR0913",
+    "PLR0914",
+    "PLR0915",
+    "PLR0917",
+    # Typer's Option/Argument in argument defaults is typer's standard API pattern
+    "B008",
+    # Boolean parameters read fine as keyword-only flags here
+    "FBT001",
+    "FBT002",
+    "FBT003",
+    # Relative imports are the intra-package convention
+    "TID252",
+    # Formatter-owned; enforced by `ruff format`
+    "COM812",
+    "I001",
+    # Magic values in comparisons are readable in this CLI
+    "PLR2004",
+    # The formatter owns wrapping; long string literals and URLs stay on one line
+    "E501",
+    # src-layout tests need no __init__.py
+    "INP001",
+    # Runtime-used typing imports stay at module level
+    "TC001",
+    "TC002",
+    "TC003",
+    # Small literal tuples read fine in membership tests
+    "PLR6201",
+
+    # ── Deferred to PLE-248 — Enforce the deferred ruff rules
+    # https://linear.app/plerionplatforms/issue/PLE-248
+    # Mirrors placeframe's root ruff.toml transitional Ticket-N blocks; lifting
+    # a rule here should happen alongside lifting it from placeframe's ruff.toml.
+    "TC006",    # move import into TYPE_CHECKING block (quoted annotation) — Ticket 1
+    "UP015",    # unnecessary open mode parameters — Ticket 1
+    "FURB101",  # read-text can replace open+read — Ticket 2
+    "FURB103",  # write-text can replace open+write — Ticket 2
+    "FURB113",  # use list.extend instead of repeated append — Ticket 2
+    "PLW1514",  # open/read_text without explicit encoding — Ticket 2
+    "PTH101",   # os.chmod → Path.chmod — Ticket 2
+    "PTH112",   # os.path.isdir → Path.is_dir — Ticket 2
+    "PTH118",   # os.path.join → Path / — Ticket 2
+    "PTH123",   # open() → Path.open() — Ticket 2
+    "RET504",   # unnecessary assignment before return — Ticket 2
+    "RET505",   # unnecessary else after return — Ticket 2
+    "RUF005",   # consider spread operator instead of concatenation — Ticket 2
+    "SIM102",   # collapsible if statements — Ticket 2
+    "SIM115",   # use context manager for opening files — Ticket 2
+    "SIM117",   # use single with statement for multiple context managers — Ticket 2
+    "B904",     # raise ... from inside except — Ticket 8
+    "BLE001",   # blind except Exception — Ticket 8
+    "TRY300",   # try/except/return — move return into else — Ticket 8
+    "C901",     # function too complex — Ticket 9
+    "PLC0415",  # import not at top level — Ticket 9
+    "PLW0603",  # global statement — Ticket 9
+    "PLW2901",  # loop variable overwritten — Ticket 9
+    "PTH201",   # do not pass "." explicitly to Path — Ticket 2
+    "S103",     # bad-file-permissions (0o755 on executable) — Ticket 9
+    "S108",     # hardcoded temp file / directory — Ticket 9
+    "S404",     # suspicious subprocess import — Ticket 9
+    "S603",     # subprocess call with non-literal — Ticket 9
+    "S607",     # start-process-with-partial-path — Ticket 9
+
+    # ── Deferred to PLE-336 — Replace print() with structured logging
+    # https://linear.app/plerionplatforms/issue/PLE-336
+    "T201",     # print found
+]
+
+[lint.flake8-builtins]
+ignorelist = ["id", "map"]
