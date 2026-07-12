@@ -32,7 +32,7 @@ packages = ["src/unity_buildkit"]
 include = ["src/unity_buildkit/py.typed", "src/unity_buildkit/third-party/**"]
 
 [tool.uv.sources]
-bashrun = { git = "https://github.com/outernet-foundation/bashrun.git", rev = "48df0bc08df95a167cc681ae1f9f7ec85df031a3" }
+bashrun = { git = "https://github.com/outernet-foundation/bashrun.git", rev = "570290bf6f1a6873f060f95a766fb7649837f54a" }
 
 [tool.basedpyright]
 typeCheckingMode = "strict"
