@@ -52,7 +52,7 @@ def _current_git_branch() -> str:
 def _find_run_id(artifact_name: str, branch: str) -> str:
     owner_repo = bash_output("gh repo view --json nameWithOwner --jq .nameWithOwner").strip()
     output = bash_output(
-        f"gh api repos/{owner_repo}/actions/artifacts?name={artifact_name}&per_page=10 --jq .artifacts"
+        f"gh api repos/{owner_repo}/actions/artifacts -f name={artifact_name} -f per_page=10 --jq .artifacts"
     )
     artifacts: list[dict[str, Any]] = json.loads(output)
     for artifact in artifacts:
