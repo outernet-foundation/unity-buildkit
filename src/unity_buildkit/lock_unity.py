@@ -23,6 +23,6 @@ def lock_unity(project: Annotated[str | None, typer.Option(help="Limit to a spec
         print(f"Resolving {name} ({lock_file})...")
 
         prepare_unity_project(project_path)
-        run_unity_batchmode(project_path)
+        run_unity_batchmode(project_path, strict_exit=False)
 
         print("  Done")

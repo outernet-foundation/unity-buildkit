@@ -109,7 +109,12 @@ def unity_batchmode_command(project_path: Path, nographics: bool = True, *, auto
 
 
 def run_unity_batchmode(
-    project_path: Path, extra_flags: str = "", *, nographics: bool = True, auto_quit: bool = True
+    project_path: Path,
+    extra_flags: str = "",
+    *,
+    nographics: bool = True,
+    auto_quit: bool = True,
+    strict_exit: bool = True,
 ) -> None:
     log_path = Path(tempfile.mkdtemp(prefix="unity-buildkit-")) / "editor.log"
     command = (
@@ -127,8 +132,10 @@ def run_unity_batchmode(
     failure_block = quiet_failure_block(log_path)
     if failure_block is not None:
         raise SystemExit(f"Unity reported a package-manager failure (exit code {returncode}):\n{failure_block}")
-    if returncode != 0:
+    if returncode != 0 and strict_exit:
         raise SystemExit(f"Unity exited {returncode}; full editor log at {log_path}")
+    if returncode != 0:
+        print(f"  WARNING: Unity exited {returncode}; no package-manager failure found — full editor log at {log_path}")
 
 
 def quiet_failure_block(log_path: Path) -> str | None:
