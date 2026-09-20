@@ -19,9 +19,11 @@ One flat module per concern under `src/unity_buildkit/`:
 | `unity-matrix` | `matrix.py` | Emit the CI build matrix (CI-only). |
 | `build-unity` | `build_unity.py` | CI build with library cache restore/save and version stamping (CI-only; assumes `GITHUB_WORKSPACE`, OCI registry, runner environment). |
 
-Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (editor lookup, platform configs, batchmode command), `git_tags.py` (generic git-tag helpers), `cache.py` (ORAS restore/save), `ci_step.py` (GitHub Actions `::group::` step wrapper), `setup.py` / `setup_oras.py` (CI runner provisioning), `third-party/dotnet-install.sh` (vendored — see its sibling README for provenance).
+Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (editor lookup, platform configs, batchmode command, shared Unity runner), `git_tags.py` (generic git-tag helpers), `cache.py` (ORAS restore/save), `ci_step.py` (GitHub Actions `::group::` step wrapper), `setup.py` / `setup_oras.py` (CI runner provisioning), `third-party/dotnet-install.sh` (vendored — see its sibling README for provenance).
 
 ## Constraints
+
+**Every Unity invocation goes through `unity.run_unity_batchmode`, which does not trust the editor's exit code.** Unity exits 0 while reporting fatal package-manager errors (unresolvable dependencies, invalid package.json versions) only in the editor log — a resolver failure therefore surfaces as a stale `packages-lock.json` and nothing else. The runner streams the log live through `tee` into a captured file and afterwards scans it for `QUIET_FAILURE_SIGNATURES`; a match fails the invocation with the matched log block regardless of exit code, and a non-zero exit fails too (with the log path). New Unity verbs must call the runner rather than invoking the editor directly, and newly discovered silent-failure log lines get added to the signature tuple. `-runTests` invocations pass `auto_quit=False` (the test runner owns exit timing).
 
 **Every runtime dependency must be PyPI-resolvable except `bashrun`.** This package is consumed cross-repo via git URL, and uv's `tool.uv.sources` are not transitive: a consumer resolves this package's dependencies by name, from PyPI, unless the consumer declares its own source for them. The one carveout is [`bashrun`](https://github.com/outernet-foundation/bashrun), which consumers declare a git source for alongside this package (the distinctive name keeps PyPI squatting out of the resolution path).
 
