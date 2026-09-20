@@ -25,10 +25,17 @@ LICENSE_MODULE = "linux-il2cpp"
 
 
 def find_unity_editor(project_path: Path) -> str:
-    if shutil.which("unity-editor"):
-        return "unity-editor"
+    try:
+        editor = find_editor_for_version(read_editor_version(project_path))
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
+    return str(editor)
 
-    version = read_editor_version(project_path)
+
+def find_editor_for_version(version: str) -> Path:
+    path_editor = shutil.which("unity-editor")
+    if path_editor:
+        return Path(path_editor)
 
     if sys.platform == "win32":
         candidates = [Path(f"C:/Program Files/Unity/Hub/Editor/{version}/Editor/Unity.exe")]
@@ -39,23 +46,31 @@ def find_unity_editor(project_path: Path) -> str:
         ]
 
     for candidate in candidates:
-        if candidate.exists():
-            return str(candidate)
+        if candidate.is_file():
+            return candidate
 
-    searched = ", ".join(str(c) for c in candidates)
-    raise SystemExit(f"Cannot find Unity {version} editor. Searched: {searched}")
+    searched = ", ".join(str(candidate) for candidate in candidates)
+    raise ValueError(f"Cannot find Unity {version} editor. Searched: {searched}")
 
 
 def read_editor_version(project_path: Path) -> str:
     version_file = project_path / "ProjectSettings" / "ProjectVersion.txt"
+    version = editor_version(project_path)
+    if version is not None:
+        return version
     if not version_file.exists():
         raise SystemExit(f"Cannot find {version_file} — is this a Unity project?")
+    raise SystemExit(f"Cannot parse editor version from {version_file}")
 
+
+def editor_version(project_path: Path) -> str | None:
+    version_file = project_path / "ProjectSettings" / "ProjectVersion.txt"
+    if not version_file.exists():
+        return None
     for line in version_file.read_text().splitlines():
         if line.startswith("m_EditorVersion:"):
             return line.split(":", 1)[1].strip()
-
-    raise SystemExit(f"Cannot parse editor version from {version_file}")
+    return None
 
 
 def prepare_unity_project(project_path: Path) -> None:

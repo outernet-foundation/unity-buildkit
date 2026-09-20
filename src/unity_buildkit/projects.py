@@ -22,14 +22,8 @@ class UnityProject(UnityBuildManifest):
 
 def load_unity_projects() -> dict[str, UnityProject]:
     projects: dict[str, UnityProject] = {}
-    for directory, subdirectories, filenames in os.walk(Path.cwd()):
-        subdirectories[:] = sorted(
-            name for name in subdirectories if name not in PRUNE_DIRECTORIES and not name.startswith(".")
-        )
-        if MANIFEST_FILENAME not in filenames:
-            continue
-
-        project_path = Path(directory).resolve()
+    for directory in directories_containing(Path.cwd(), MANIFEST_FILENAME):
+        project_path = directory.resolve()
         name = project_path.name
         version_file = project_path / "ProjectSettings" / "ProjectVersion.txt"
         if not version_file.exists():
@@ -46,3 +40,14 @@ def load_unity_projects() -> dict[str, UnityProject]:
         raise SystemExit(f"No {MANIFEST_FILENAME} manifests found under {Path.cwd()} — run from the repo root")
 
     return projects
+
+
+def directories_containing(root: Path, filename: str) -> list[Path]:
+    directories: list[Path] = []
+    for directory, subdirectories, filenames in os.walk(root):
+        subdirectories[:] = sorted(
+            name for name in subdirectories if name not in PRUNE_DIRECTORIES and not name.startswith(".")
+        )
+        if filename in filenames:
+            directories.append(Path(directory))
+    return directories
