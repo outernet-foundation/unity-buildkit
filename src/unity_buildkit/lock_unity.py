@@ -1,10 +1,9 @@
 from typing import Annotated
 
 import typer
-from bashrun import bash_check_stream
 
 from .projects import load_unity_projects
-from .unity import prepare_unity_project, unity_batchmode_command
+from .unity import prepare_unity_project, run_unity_batchmode
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -24,8 +23,6 @@ def lock_unity(project: Annotated[str | None, typer.Option(help="Limit to a spec
         print(f"Resolving {name} ({lock_file})...")
 
         prepare_unity_project(project_path)
-        succeeded = bash_check_stream(f"{unity_batchmode_command(project_path)} -logFile /dev/stdout")
-        if not succeeded:
-            print(f"  WARNING: Unity exited non-zero for {name} (package resolution may still have succeeded)")
+        run_unity_batchmode(project_path)
 
         print("  Done")

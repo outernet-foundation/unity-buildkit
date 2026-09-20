@@ -6,7 +6,6 @@ import shutil
 from pathlib import Path
 
 import typer
-from bashrun import bash
 from pydantic_settings import BaseSettings
 
 from .cache import restore, save
@@ -14,7 +13,7 @@ from .ci_step import ci_step
 from .license_restore import restore_license
 from .setup import configure_git, install_dotnet
 from .setup_oras import install_oras
-from .unity import prepare_unity_project, resolve_unity_build, unity_batchmode_command
+from .unity import prepare_unity_project, resolve_unity_build, run_unity_batchmode
 from .git_tags import get_latest_tag_version
 
 
@@ -71,11 +70,6 @@ def main(
         prepare_unity_project(unity_project_path)
 
     with ci_step(f"Build {unity_project_path.name} [{platform}]"):
-        command = (
-            f"{unity_batchmode_command(unity_project_path, nographics=False)} "
-            f"{build_flag} -executeMethod {execute_method}"
-        )
-
         tag_prefix = project_config.tag_prefix
         if tag_prefix:
             version = get_latest_tag_version(f"{tag_prefix}-v") or "0.0.0"
@@ -84,7 +78,7 @@ def main(
             version_file.write_text(json.dumps({"version": full_version, "runNumber": run_number}))
             print(f"Wrote version {full_version} (bundleVersionCode={run_number}) to {version_file}")
 
-        bash(f"{command} -logFile /dev/stdout")
+        run_unity_batchmode(unity_project_path, f"{build_flag} -executeMethod {execute_method}", nographics=False)
 
     with ci_step("Save library cache"):
         # PackageCache (~1.6 GiB) is redundant with the shared UPM cache at ~/.cache/Unity/upm/

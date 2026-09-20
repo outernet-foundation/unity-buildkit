@@ -2,9 +2,8 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from bashrun import bash_check_stream
 
-from .unity import prepare_unity_project, resolve_unity_build, unity_batchmode_command
+from .unity import prepare_unity_project, resolve_unity_build, run_unity_batchmode
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -17,12 +16,7 @@ def build_unity_project(project: str, build: str) -> list[Path]:
     build_directory = project_path / "Build"
     before = snapshot_artifacts(build_directory)
 
-    command = (
-        f"{unity_batchmode_command(project_path, nographics=False)} {build_flag} "
-        f"-executeMethod {execute_method} -logFile /dev/stdout"
-    )
-    if not bash_check_stream(command):
-        raise SystemExit(1)
+    run_unity_batchmode(project_path, f"{build_flag} -executeMethod {execute_method}", nographics=False)
 
     after = snapshot_artifacts(build_directory)
     produced = sorted(path for path, modification_time in after.items() if before.get(path) != modification_time)
