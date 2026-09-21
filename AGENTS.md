@@ -25,7 +25,7 @@ One flat module per concern under `src/unity_devkit/`:
 | `unity-matrix` | `matrix.py` | Emit the CI build matrix (CI-only). |
 | `build-unity` | `build_unity.py` | CI build with library cache restore/save and version stamping (CI-only; assumes `GITHUB_WORKSPACE`, OCI registry, runner environment). |
 
-Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (editor lookup, platform configs, batchmode command, shared Unity runner), `git_tags.py` (generic git-tag helpers), `cache.py` (ORAS restore/save). The CI-floor modules (step wrapper, runner provisioning, ORAS cache, git-tag helpers) live in [`ci-devkit`](https://github.com/outernet-foundation/ci-devkit) (a runtime dependency); unity-devkit owns only Unity concerns.
+Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (editor lookup, platform configs, batchmode command, shared Unity runner). The CI-floor modules (step wrapper, runner provisioning, ORAS artifact cache, git-tag helpers) live in [`ci-devkit`](https://github.com/outernet-foundation/ci-devkit) (a runtime dependency); unity-devkit owns only Unity concerns.
 
 ## Constraints
 
