@@ -7,7 +7,7 @@ from pathlib import Path
 import typer
 from pydantic_settings import BaseSettings
 
-from .cache import restore
+from ci_devkit.cache import restore
 
 
 # LICENSE_CACHE_TAG env pins the tag for a whole CI run; without it, each call

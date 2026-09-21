@@ -8,13 +8,13 @@ from pathlib import Path
 import typer
 from pydantic_settings import BaseSettings
 
-from .cache import restore, save
-from .ci_step import ci_step
+from ci_devkit.cache import restore, save
+from ci_devkit.ci_step import ci_step
 from .license_restore import restore_license
-from .setup import configure_git, install_dotnet
-from .setup_oras import install_oras
+from ci_devkit.setup import configure_git, install_dotnet
+from ci_devkit.setup_oras import install_oras
 from .unity import prepare_unity_project, resolve_unity_build, run_unity_batchmode
-from .git_tags import get_latest_tag_version
+from ci_devkit.git_tags import get_latest_tag_version
 
 
 class Settings(BaseSettings):

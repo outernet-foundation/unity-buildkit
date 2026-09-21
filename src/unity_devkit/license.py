@@ -6,10 +6,10 @@ import typer
 from bashrun import bash
 from pydantic_settings import BaseSettings
 
-from .cache import restore, save
+from ci_devkit.cache import restore, save
 from .license_restore import license_cache_tag
-from .setup import configure_git
-from .setup_oras import install_oras
+from ci_devkit.setup import configure_git
+from ci_devkit.setup_oras import install_oras
 
 
 class Settings(BaseSettings):

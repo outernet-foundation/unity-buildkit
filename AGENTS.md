@@ -25,7 +25,7 @@ One flat module per concern under `src/unity_devkit/`:
 | `unity-matrix` | `matrix.py` | Emit the CI build matrix (CI-only). |
 | `build-unity` | `build_unity.py` | CI build with library cache restore/save and version stamping (CI-only; assumes `GITHUB_WORKSPACE`, OCI registry, runner environment). |
 
-Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (editor lookup, platform configs, batchmode command, shared Unity runner), `git_tags.py` (generic git-tag helpers), `cache.py` (ORAS restore/save), `ci_step.py` (GitHub Actions `::group::` step wrapper), `setup.py` / `setup_oras.py` (CI runner provisioning), `third-party/dotnet-install.sh` (vendored — see its sibling README for provenance).
+Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (editor lookup, platform configs, batchmode command, shared Unity runner), `git_tags.py` (generic git-tag helpers), `cache.py` (ORAS restore/save). The CI-floor modules (step wrapper, runner provisioning, ORAS cache, git-tag helpers) live in [`ci-devkit`](https://github.com/outernet-foundation/ci-devkit) (a runtime dependency); unity-devkit owns only Unity concerns.
 
 ## Constraints
 
@@ -39,11 +39,9 @@ Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (edi
 
 **Entry-point names are the workflow contract.** Consumer `unity-build.yml` workflows invoke `unity-matrix`, `unity-license-tag`, `activate-unity-license`, and `build-unity` by name via `uv run`. Consumers pin the workflow by ref and this package by git revision independently; the two pins stay compatible as long as the entry-point names and flags hold, so treat those as a public API.
 
-**The environment-lookup helpers are cross-repo Python API.** `unity.find_editor_for_version` (editor ladder: `unity-editor` on PATH → `/opt/unity/<version>` → `~/Unity/Hub/Editor/<version>`; raises `ValueError` listing every searched path on a miss), `unity.editor_version` (`ProjectVersion.txt` parse; `None` for a missing file or unparseable content), and `projects.directories_containing` (+ `PRUNE_DIRECTORIES`) are imported by git-referencing consumers — prepo's `sync` verb — the same way release-devkit imports `ci_step`/`setup`. Their signatures and miss behavior are contract, not internals. The `SystemExit`-raising wrappers (`find_unity_editor`, `read_editor_version`) exist for unity-devkit's own CLI paths and delegate to the core helpers.
+**The environment-lookup helpers are cross-repo Python API.** `unity.find_editor_for_version` (editor ladder: `unity-editor` on PATH → `/opt/unity/<version>` → `~/Unity/Hub/Editor/<version>`; raises `ValueError` listing every searched path on a miss), `unity.editor_version` (`ProjectVersion.txt` parse; `None` for a missing file or unparseable content), and `projects.directories_containing` (+ `PRUNE_DIRECTORIES`) are imported by registry consumers — prepo's `sync` verb. Their signatures and miss behavior are contract, not internals. The `SystemExit`-raising wrappers (`find_unity_editor`, `read_editor_version`) exist for unity-devkit's own CLI paths and delegate to the core helpers.
 
 **Version stamping is opt-in via `tag_prefix`.** `build-unity` writes `.build-version.json` (consumed by the project's build `executeMethod`) only when the project's manifest declares `tag_prefix`; the version is the latest `<tag_prefix>-v*` git tag plus a run-number suffix. Projects without the field build unversioned. Consumer repos that release keep their own name→prefix map on their side — the two must agree for projects that release.
-
-**`dotnet-install.sh` is vendored, not downloaded.** Downloading it via curl inside CI containers is unreliable (timeouts) — the same reason `actions/setup-dotnet` bundles it. It ships as package data inside `src/unity_devkit/third-party/` and is resolved `__file__`-relative, which works in editable installs, wheels, and git checkouts alike.
 
 **The ORAS cache media type identifies the wrapper package, not the consuming repo.** `cache.save()` pushes with `application/vnd.unity-devkit.cache.v1+zstd`. Restore doesn't filter on media type, so older manifests carrying a different vendor prefix still pull, but new pushes always carry this one — the identifier tracks the tool that wrote the cache, not the project whose bytes are inside it.
 
