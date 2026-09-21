@@ -1,21 +1,23 @@
-# unity-buildkit
+# unity-devkit
 
 ## What this is
 
-`unity-buildkit` is the Unity build toolkit: project discovery, local builds, CI builds, license activation, the `install` command (download-or-build then install onto a device), and the ORAS cache/setup helpers those need. Consumer repositories install this package from PyPI and get the same Unity CI and install flow — paired with a reusable `unity-build.yml` GitHub Actions workflow (housed in consumer repos today) that invokes only this package's entry points.
+`unity-devkit` is the Unity build toolkit: project discovery, local builds, CI builds, license activation, the `install` command (download-or-build then install onto a device), and the ORAS cache/setup helpers those need. Consumer repositories install this package from PyPI and get the same Unity CI and install flow — paired with a reusable `unity-build.yml` GitHub Actions workflow (housed in consumer repos today) that invokes only this package's entry points.
+
+The repo and package renamed from `unity-devkit` to `unity-devkit` (2026-09-21, member of the `-devkit` family; before that `placeframe-unity` → `unity-devkit` on extraction). The PyPI identity is fresh: `unity-devkit` starts its own tag ledger at `0.1.0`; the terminal `unity-devkit` distributions (≤0.1.1) are deprecation signposts pointing here, not this package's history.
 
 ## Release flow
 
-Publishing rides `ci.yml`'s `publish` job on every push to `main` (gated on the check job): pubpkg — invoked uvx-isolated from a pinned git ref, never a project dependency (unity-buildkit sits inside pubpkg's own dependency graph; a project-level pubpkg edge is a resolver cycle) — computes the plan from the tag ledger and path-diff, patches the version ephemerally, and publishes to PyPI under OIDC trusted publishing (pending publisher bound to `ci.yml`, no environment). The committed `pyproject.toml` version is permanently the `0.0.0.dev0` sentinel; the `unity-buildkit-v*` tags are the version ledger (first release `0.1.0`, patch-auto thereafter). API-breaking changes ship with a manually bumped version — patch-auto assumes additive changes.
+Publishing rides `release.yml`, triggered by a successful CI run on a `main` push: the machinery — release-kit, invoked uvx-isolated, never a project dependency (unity-devkit sits inside its own dependency graph; a project-level release-kit edge is a resolver cycle) — computes the plan from the tag ledger and path-diff, patches the version ephemerally, and publishes to PyPI under OIDC trusted publishing (publisher bound to `release.yml`, no environment). The committed `pyproject.toml` version is permanently the `0.0.0.dev0` sentinel; the `unity-devkit-v*` tags are the version ledger (first release `0.1.0`, patch-auto thereafter). API-breaking changes ship with a manually bumped version — patch-auto assumes additive changes.
 
 ## Shape
 
-One flat module per concern under `src/unity_buildkit/`:
+One flat module per concern under `src/unity_devkit/`:
 
 | `uv run` command | Module | Notes |
 |---|---|---|
 | `compile-unity` | `compile_unity.py` | Local Unity build (APK or platform binary, suitable for `adb install`). Required flags: `--project <name>` and `--build <target>`, matching a discovered `unity-build.json` manifest. Streams the editor log, prints output paths under `<project>/Build/`. |
-| `install` | `install.py` | Install a Unity build onto an `adb`-connected device or launch a linux executable. Default: download the latest GitHub Actions artifact for `(project, target)` on the current branch (overridable with `--branch` / `--run`), cache it under `~/.unity-buildkit/builds/{run_id}/`, `adb install` the APK (or `bash_handoff` the linux64 executable). With `--build` / `-B`, skips the artifact fetch and calls `compile-unity` locally instead, funneling the produced APK / executable through the same install path. Honours the manifest's `package` (for pre-install uninstall) and `grant_permissions` (post-install `adb shell pm grant`). |
+| `install` | `install.py` | Install a Unity build onto an `adb`-connected device or launch a linux executable. Default: download the latest GitHub Actions artifact for `(project, target)` on the current branch (overridable with `--branch` / `--run`), cache it under `~/.unity-devkit/builds/{run_id}/`, `adb install` the APK (or `bash_handoff` the linux64 executable). With `--build` / `-B`, skips the artifact fetch and calls `compile-unity` locally instead, funneling the produced APK / executable through the same install path. Honours the manifest's `package` (for pre-install uninstall) and `grant_permissions` (post-install `adb shell pm grant`). |
 | `lock-unity` | `lock_unity.py` | Lock Unity package versions for reproducible builds. |
 | `test-unity` | `test_unity.py` | Run Unity editmode / playmode tests. |
 | `activate-unity-license` | `license.py` | Activate the Unity Editor license (locally or with `--oras-push` for the CI cache). |
@@ -37,13 +39,13 @@ Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (edi
 
 **Entry-point names are the workflow contract.** Consumer `unity-build.yml` workflows invoke `unity-matrix`, `unity-license-tag`, `activate-unity-license`, and `build-unity` by name via `uv run`. Consumers pin the workflow by ref and this package by git revision independently; the two pins stay compatible as long as the entry-point names and flags hold, so treat those as a public API.
 
-**The environment-lookup helpers are cross-repo Python API.** `unity.find_editor_for_version` (editor ladder: `unity-editor` on PATH → `/opt/unity/<version>` → `~/Unity/Hub/Editor/<version>`; raises `ValueError` listing every searched path on a miss), `unity.editor_version` (`ProjectVersion.txt` parse; `None` for a missing file or unparseable content), and `projects.directories_containing` (+ `PRUNE_DIRECTORIES`) are imported by git-referencing consumers — prepo's `sync` verb — the same way pubpkg imports `ci_step`/`setup`. Their signatures and miss behavior are contract, not internals. The `SystemExit`-raising wrappers (`find_unity_editor`, `read_editor_version`) exist for buildkit's own CLI paths and delegate to the core helpers.
+**The environment-lookup helpers are cross-repo Python API.** `unity.find_editor_for_version` (editor ladder: `unity-editor` on PATH → `/opt/unity/<version>` → `~/Unity/Hub/Editor/<version>`; raises `ValueError` listing every searched path on a miss), `unity.editor_version` (`ProjectVersion.txt` parse; `None` for a missing file or unparseable content), and `projects.directories_containing` (+ `PRUNE_DIRECTORIES`) are imported by git-referencing consumers — prepo's `sync` verb — the same way pubpkg imports `ci_step`/`setup`. Their signatures and miss behavior are contract, not internals. The `SystemExit`-raising wrappers (`find_unity_editor`, `read_editor_version`) exist for unity-devkit's own CLI paths and delegate to the core helpers.
 
 **Version stamping is opt-in via `tag_prefix`.** `build-unity` writes `.build-version.json` (consumed by the project's build `executeMethod`) only when the project's manifest declares `tag_prefix`; the version is the latest `<tag_prefix>-v*` git tag plus a run-number suffix. Projects without the field build unversioned. Consumer repos that release keep their own name→prefix map on their side — the two must agree for projects that release.
 
-**`dotnet-install.sh` is vendored, not downloaded.** Downloading it via curl inside CI containers is unreliable (timeouts) — the same reason `actions/setup-dotnet` bundles it. It ships as package data inside `src/unity_buildkit/third-party/` and is resolved `__file__`-relative, which works in editable installs, wheels, and git checkouts alike.
+**`dotnet-install.sh` is vendored, not downloaded.** Downloading it via curl inside CI containers is unreliable (timeouts) — the same reason `actions/setup-dotnet` bundles it. It ships as package data inside `src/unity_devkit/third-party/` and is resolved `__file__`-relative, which works in editable installs, wheels, and git checkouts alike.
 
-**The ORAS cache media type identifies the wrapper package, not the consuming repo.** `cache.save()` pushes with `application/vnd.unity-buildkit.cache.v1+zstd`. Restore doesn't filter on media type, so older manifests carrying a different vendor prefix still pull, but new pushes always carry this one — the identifier tracks the tool that wrote the cache, not the project whose bytes are inside it.
+**The ORAS cache media type identifies the wrapper package, not the consuming repo.** `cache.save()` pushes with `application/vnd.unity-devkit.cache.v1+zstd`. Restore doesn't filter on media type, so older manifests carrying a different vendor prefix still pull, but new pushes always carry this one — the identifier tracks the tool that wrote the cache, not the project whose bytes are inside it.
 
 ## See also
 
