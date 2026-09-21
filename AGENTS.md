@@ -4,11 +4,11 @@
 
 `unity-devkit` is the Unity build toolkit: project discovery, local builds, CI builds, license activation, the `install` command (download-or-build then install onto a device), and the ORAS cache/setup helpers those need. Consumer repositories install this package from PyPI and get the same Unity CI and install flow — paired with a reusable `unity-build.yml` GitHub Actions workflow (housed in consumer repos today) that invokes only this package's entry points.
 
-The repo and package renamed from `unity-devkit` to `unity-devkit` (2026-09-21, member of the `-devkit` family; before that `placeframe-unity` → `unity-devkit` on extraction). The PyPI identity is fresh: `unity-devkit` starts its own tag ledger at `0.1.0`; the terminal `unity-devkit` distributions (≤0.1.1) are deprecation signposts pointing here, not this package's history.
+The repo and package renamed from `unity-buildkit` to `unity-devkit` (2026-09-21, member of the `-devkit` family; before that `placeframe-unity` → `unity-buildkit` on extraction). The PyPI identity is fresh: `unity-devkit` starts its own tag ledger at `0.1.0`; the terminal `unity-buildkit` distributions (≤0.1.1) are deprecation signposts pointing here, not this package's history.
 
 ## Release flow
 
-Publishing rides `release.yml`, triggered by a successful CI run on a `main` push: the machinery — release-kit, invoked uvx-isolated, never a project dependency (unity-devkit sits inside its own dependency graph; a project-level release-kit edge is a resolver cycle) — computes the plan from the tag ledger and path-diff, patches the version ephemerally, and publishes to PyPI under OIDC trusted publishing (publisher bound to `release.yml`, no environment). The committed `pyproject.toml` version is permanently the `0.0.0.dev0` sentinel; the `unity-devkit-v*` tags are the version ledger (first release `0.1.0`, patch-auto thereafter). API-breaking changes ship with a manually bumped version — patch-auto assumes additive changes.
+Publishing rides `release.yml`, triggered by a successful CI run on a `main` push: the machinery — release-devkit, invoked uvx-isolated, never a project dependency (unity-devkit sits inside its own dependency graph; a project-level release-devkit edge is a resolver cycle) — computes the plan from the tag ledger and path-diff, patches the version ephemerally, and publishes to PyPI under OIDC trusted publishing (publisher bound to `release.yml`, no environment). The committed `pyproject.toml` version is permanently the `0.0.0.dev0` sentinel; the `unity-devkit-v*` tags are the version ledger (first release `0.1.0`, patch-auto thereafter). API-breaking changes ship with a manually bumped version — patch-auto assumes additive changes.
 
 ## Shape
 
