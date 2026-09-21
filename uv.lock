@@ -42,6 +42,20 @@ wheels = [
 ]
 
 [[package]]
+name = "ci-devkit"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "bashrun" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9c/58/e0c1f17fbcf6e7adcc4192d5d0a4300be2b0d0ffd055ff746f0116ad587a/ci_devkit-0.1.0.tar.gz", hash = "sha256:ac1a463effe9a2760ea6d18301d6938c6a47d07cee9d8e14bae0c2d20ab0f377", size = 38920, upload-time = "2026-09-21T22:54:14.99Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c3/b3/ee5474174a4d8e9626eb0cbac234ea99908ed3988cc8b807fc8f4a2680a6/ci_devkit-0.1.0-py3-none-any.whl", hash = "sha256:3df3faf0821ffc1c32403f0af5b6b1ceb312d4912cae5b58aaf97b20c251874d", size = 26289, upload-time = "2026-09-21T22:54:13.759Z" },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -279,6 +293,7 @@ version = "0.0.0.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "bashrun" },
+    { name = "ci-devkit" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "typer" },
@@ -293,6 +308,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "bashrun", specifier = ">=0.1.0" },
+    { name = "ci-devkit", specifier = ">=0.1.0" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pydantic-settings", specifier = ">=2.9.1" },
     { name = "typer", specifier = ">=0.17.4" },
