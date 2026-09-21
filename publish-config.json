@@ -1,9 +1,9 @@
 {
   "packages": [
     {
-      "name": "unity-buildkit",
+      "name": "unity-devkit",
       "path": ".",
-      "feeds": { "pypi": "unity-buildkit" }
+      "feeds": { "pypi": "unity-devkit" }
     }
   ],
   "ci_workflow": "ci.yml",

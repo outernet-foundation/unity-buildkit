@@ -274,7 +274,7 @@ wheels = [
 ]
 
 [[package]]
-name = "unity-buildkit"
+name = "unity-devkit"
 version = "0.0.0.dev0"
 source = { editable = "." }
 dependencies = [

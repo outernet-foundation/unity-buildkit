@@ -13,7 +13,7 @@ from .projects import UnityProject, load_unity_projects
 
 INSTALLABLE_TARGETS = {"android-mobile", "magicleap", "linux64"}
 ADB_TARGETS = {"android-mobile", "magicleap"}
-CACHE_ROOT = Path.home() / ".unity-buildkit" / "builds"
+CACHE_ROOT = Path.home() / ".unity-devkit" / "builds"
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 

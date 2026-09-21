@@ -116,7 +116,7 @@ def run_unity_batchmode(
     auto_quit: bool = True,
     strict_exit: bool = True,
 ) -> None:
-    log_path = Path(tempfile.mkdtemp(prefix="unity-buildkit-")) / "editor.log"
+    log_path = Path(tempfile.mkdtemp(prefix="unity-devkit-")) / "editor.log"
     command = (
         f"{unity_batchmode_command(project_path, nographics=nographics, auto_quit=auto_quit)} {extra_flags}"
     ).strip()
