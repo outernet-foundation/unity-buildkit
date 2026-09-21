@@ -1,10 +1,10 @@
 [project]
 name = "unity-buildkit"
-version = "0.1.0"
+version = "0.0.0.dev0"
 description = "Unity project discovery, build, license, and CI tooling"
 requires-python = ">=3.13"
 dependencies = [
-    "bashrun",
+    "bashrun>=0.1.0",
     "typer>=0.17.4",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.9.1",
@@ -32,7 +32,6 @@ packages = ["src/unity_buildkit"]
 include = ["src/unity_buildkit/py.typed", "src/unity_buildkit/third-party/**"]
 
 [tool.uv.sources]
-bashrun = { git = "https://github.com/outernet-foundation/bashrun.git", rev = "0a9e9a466a3ef99c95e316a6f46842741d32ca11" }
 
 [tool.basedpyright]
 venvPath = "."

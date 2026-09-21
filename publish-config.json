@@ -1,0 +1,11 @@
+{
+  "packages": [
+    {
+      "name": "unity-buildkit",
+      "path": ".",
+      "feeds": { "pypi": "unity-buildkit" }
+    }
+  ],
+  "ci_workflow": "ci.yml",
+  "mirror_prefix": "ghcr.io/outernet-foundation/mirror"
+}
