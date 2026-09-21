@@ -2,7 +2,11 @@
 
 ## What this is
 
-`unity-buildkit` is the Unity build toolkit: project discovery, local builds, CI builds, license activation, the `install` command (download-or-build then install onto a device), and the ORAS cache/setup helpers those need. Consumer repositories git-reference this package and get the same Unity CI and install flow — paired with a reusable `unity-build.yml` GitHub Actions workflow (housed in consumer repos today) that invokes only this package's entry points.
+`unity-buildkit` is the Unity build toolkit: project discovery, local builds, CI builds, license activation, the `install` command (download-or-build then install onto a device), and the ORAS cache/setup helpers those need. Consumer repositories install this package from PyPI and get the same Unity CI and install flow — paired with a reusable `unity-build.yml` GitHub Actions workflow (housed in consumer repos today) that invokes only this package's entry points.
+
+## Release flow
+
+Publishing rides `ci.yml`'s `publish` job on every push to `main` (gated on the check job): pubpkg — invoked uvx-isolated from a pinned git ref, never a project dependency (unity-buildkit sits inside pubpkg's own dependency graph; a project-level pubpkg edge is a resolver cycle) — computes the plan from the tag ledger and path-diff, patches the version ephemerally, and publishes to PyPI under OIDC trusted publishing (pending publisher bound to `ci.yml`, no environment). The committed `pyproject.toml` version is permanently the `0.0.0.dev0` sentinel; the `unity-buildkit-v*` tags are the version ledger (first release `0.1.0`, patch-auto thereafter). API-breaking changes ship with a manually bumped version — patch-auto assumes additive changes.
 
 ## Shape
 
@@ -25,7 +29,7 @@ Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (edi
 
 **Every Unity invocation goes through `unity.run_unity_batchmode`, which does not trust the editor's exit code.** Unity exits 0 while reporting fatal package-manager errors (unresolvable dependencies, invalid package.json versions) only in the editor log — a resolver failure therefore surfaces as a stale `packages-lock.json` and nothing else. The runner streams the log live through `tee` into a captured file and afterwards scans it for `QUIET_FAILURE_SIGNATURES`; a match fails the invocation with the matched log block regardless of exit code. New Unity verbs must call the runner rather than invoking the editor directly, and newly discovered silent-failure log lines get added to the signature tuple. Exit-code strictness is per-verb: build/test verbs fail on non-zero (`strict_exit=True`, the default), while `lock-unity` passes `strict_exit=False` — it judges resolution, not compilation, so a project whose scripts fail to compile (resolution already done, lock written) produces a warning, not a failure. `-runTests` invocations pass `auto_quit=False` (the test runner owns exit timing).
 
-**Every runtime dependency must be PyPI-resolvable except `bashrun`.** This package is consumed cross-repo via git URL, and uv's `tool.uv.sources` are not transitive: a consumer resolves this package's dependencies by name, from PyPI, unless the consumer declares its own source for them. The one carveout is [`bashrun`](https://github.com/outernet-foundation/bashrun), which consumers declare a git source for alongside this package (the distinctive name keeps PyPI squatting out of the resolution path).
+**Every runtime dependency must be PyPI-resolvable.** This package publishes to and is consumed from PyPI, and a registry consumer resolves the whole graph transitively by name — any dependency that is not on PyPI breaks every consumer's install. [`bashrun`](https://github.com/outernet-foundation/bashrun) is on PyPI like the rest; git-source pins are a scratch-branch-only vehicle for testing unreleased changes.
 
 **Unity project discovery is manifest-driven, not catalog-driven.** The Unity commands discover projects by scanning the working-directory tree for `unity-build.json` manifest files (pruning `Library`, `Temp`, `obj`, `Build`, `node_modules`, `.git`, and dot-directories). A manifest marks its directory as an opted-in Unity project; the project name is the directory name; the manifest carries only intent the project cannot otherwise express (`builds`, `execute_methods`, `package`, `grant_permissions`, `tag_prefix` — schema in `projects.py`). There is no central catalog: a project's build identity lives inside the project, so it travels with the project if it moves between repositories, and the commands run unchanged in any repo containing manifests. Discovery anchors at the current working directory — run commands from the repo root.
 
@@ -44,4 +48,4 @@ Supporting modules: `projects.py` (manifest schema + discovery), `unity.py` (edi
 ## See also
 
 - [`bashrun`](https://github.com/outernet-foundation/bashrun) — the shell-exec helpers this package uses everywhere (`bash`, `bash_output`, `bash_check`, `bash_handoff`).
-- `README.md` — human-facing setup, command catalog, and consumer git-source snippet.
+- `README.md` — human-facing setup, command catalog, and consumer install snippet.

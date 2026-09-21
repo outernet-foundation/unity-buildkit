@@ -29,18 +29,14 @@ Every command accepts `--help`.
 
 ## Consuming from another repo
 
-git-reference this package and `bashrun` (its only non-PyPI dependency) from your own `pyproject.toml`:
+Install from PyPI:
 
 ```toml
 [project]
-dependencies = ["unity-buildkit"]
-
-[tool.uv.sources]
-unity-buildkit = { git = "https://github.com/outernet-foundation/unity-buildkit.git", rev = "<pin-a-commit-sha>" }
-bashrun = { git = "https://github.com/outernet-foundation/bashrun.git", rev = "<pin-a-commit-sha>" }
+dependencies = ["unity-buildkit>=0.1.0"]
 ```
 
-Then `uv run compile-unity`, `uv run install`, etc. work from that repo against its own `unity-build.json` projects.
+Then `uv run compile-unity`, `uv run install`, etc. work from that repo against its own `unity-build.json` projects. To test an unreleased change, pin the repo at a git ref in a scratch branch instead (`unity-buildkit = { git = "…", rev = "<sha>" }` under `[tool.uv.sources]`) and drop the pin when the release lands.
 
 ## Development
 
