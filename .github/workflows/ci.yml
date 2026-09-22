@@ -28,3 +28,6 @@ jobs:
 
       - name: Type check
         run: uv run basedpyright
+
+      - name: Ruff config drift
+        run: uvx --from python-devkit==0.1.2 sync-ruff --check

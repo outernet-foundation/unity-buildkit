@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 from pathlib import Path
+from typing import Annotated
 
 import typer
 from pydantic_settings import BaseSettings
@@ -28,16 +29,16 @@ app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 @app.command()
 def main(
-    project: str = typer.Option(help="Project name"),
-    project_path: Path = typer.Option(help="Path to Unity project"),
-    platform: str = typer.Option(help="Target platform"),
-    cache_key: str = typer.Option(help="Cache key prefix"),
-    run_number: int = typer.Option(0, help="CI run number"),
-    branch: str = typer.Option("dev", help="Git branch name"),
-    registry: str = typer.Option(help="OCI registry path"),
-    build_env: str = typer.Option(
-        "", help="Newline-separated KEY=VALUE pairs injected into the Unity build process environment"
-    ),
+    project: Annotated[str, typer.Option(help="Project name")],
+    project_path: Annotated[Path, typer.Option(help="Path to Unity project")],
+    platform: Annotated[str, typer.Option(help="Target platform")],
+    cache_key: Annotated[str, typer.Option(help="Cache key prefix")],
+    registry: Annotated[str, typer.Option(help="OCI registry path")],
+    run_number: Annotated[int, typer.Option(help="CI run number")] = 0,
+    branch: Annotated[str, typer.Option(help="Git branch name")] = "dev",
+    build_env: Annotated[
+        str, typer.Option(help="Newline-separated KEY=VALUE pairs injected into the Unity build process environment")
+    ] = "",
 ) -> None:
     for line in build_env.splitlines():
         entry = line.strip()
