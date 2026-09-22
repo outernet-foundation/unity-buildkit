@@ -1,6 +1,6 @@
 # unity-devkit
 
-Unity project discovery, local builds, CI builds, license activation, and the shared CI helpers those need. Consumers scan the working-directory tree for `unity-build.json` manifests to enumerate their Unity projects; the commands here (`compile-unity`, `install`, `build-unity`, `unity-matrix`, license helpers) work unchanged in any repo containing manifests. Paired with the reusable [`unity-build.yml`](https://github.com/outernet-foundation/unity-devkit/blob/main/.github/workflows/unity-build.yml) GitHub Actions workflow (once the workflow lands here — until then, workflow YAML lives in consumer repos).
+Unity project discovery, local builds, CI builds, license activation, and the shared CI helpers those need. Consumers scan the working-directory tree for `unity-build.json` manifests to enumerate their Unity projects; the commands here (`compile-unity`, `install`, `build-unity`, `unity-matrix`, license helpers) work unchanged in any repo containing manifests. Paired with the reusable [`unity-build.yml`](https://github.com/outernet-foundation/unity-devkit/blob/main/.github/workflows/unity-build.yml) GitHub Actions workflow hosted here — consumers call it cross-repo pinned to a pushed SHA with `secrets: inherit`.
 
 ## Setup
 
