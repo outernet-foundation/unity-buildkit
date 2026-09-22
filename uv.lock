@@ -34,11 +34,11 @@ wheels = [
 
 [[package]]
 name = "bashrun"
-version = "0.1.0"
+version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/24/cd/dc3df91cbe2bfbe57b6d9bfe225f5808a22888d636cf30005d89133237c8/bashrun-0.1.0.tar.gz", hash = "sha256:e376f34693ba12ec907a6ab43626ed425c876c2b7be6569563a6492e11c79bc7", size = 18983, upload-time = "2026-09-21T01:47:56.971Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2d/7b/ad8a6956d6b739ad504775680d8f115c29e5b58fe4c7de414c481555ddda/bashrun-0.1.2.tar.gz", hash = "sha256:f0473aad601645e656f4e6ab7721597d92c771a0b316a3ea86d02a678038493c", size = 22172, upload-time = "2026-09-22T01:41:07.558Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/be/9a/749dd28f3defde3690e0280131f9461e4100c43c117f9363798f6dedbb91/bashrun-0.1.0-py3-none-any.whl", hash = "sha256:80f87924f88336460890d669aa1abb6fb8c389b675fdb41ac8d2b6861d4ebddb", size = 7634, upload-time = "2026-09-21T01:47:56.233Z" },
+    { url = "https://files.pythonhosted.org/packages/de/4a/b232f90df0829fae33b0b7d28b0771df9e30f31557799d183c25be4f6bdb/bashrun-0.1.2-py3-none-any.whl", hash = "sha256:d16244f9c1f59a271d7f5b7b20bd3bc2007ee12cfa6b2b9e4476237728699048", size = 7499, upload-time = "2026-09-22T01:41:06.643Z" },
 ]
 
 [[package]]
