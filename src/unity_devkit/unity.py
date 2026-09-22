@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 from typing import TypedDict
 
-from bashrun import CalledProcessError, bash, bash_pipe
+from bashrun.bash import CalledProcessError, bash, bash_pipe
 
 from .projects import UnityProject, load_unity_projects
 
