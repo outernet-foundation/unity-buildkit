@@ -53,7 +53,20 @@ def run_unity_batchmode(
             bash(command, log_path=log_path)
     except CalledProcessError as error:
         returncode = error.returncode
-    failure_block = quiet_failure_block(log_path)
+
+    lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    failure_block = None
+    for index, line in enumerate(lines):
+        if not any(signature in line for signature in QUIET_FAILURE_SIGNATURES):
+            continue
+        block: list[str] = []
+        for candidate in lines[index : index + QUIET_FAILURE_BLOCK_LINE_LIMIT]:
+            if block and not candidate.strip():
+                break
+            block.append(candidate)
+        failure_block = "\n".join(block)
+        break
+
     if failure_block is not None:
         raise SystemExit(f"Unity reported a package-manager failure (exit code {returncode}):\n{failure_block}")
     if returncode != 0 and strict_exit:
@@ -63,7 +76,7 @@ def run_unity_batchmode(
 
 
 def unity_batchmode_command(project_path: Path, nographics: bool = True, *, auto_quit: bool = True) -> str:
-    editor = find_unity_editor(project_path)
+    editor = str(find_editor_for_version(read_editor_version(project_path)))
     # Player builds need a real GfxDevice: Unity 6 compresses Android textures (ASTC/ETC2) on the
     # GPU, and under -nographics the Null device falls back to a path that produces corrupt textures.
     # xvfb-run (added below) supplies the display the dropped -nographics would otherwise stand in for.
@@ -78,14 +91,6 @@ def unity_batchmode_command(project_path: Path, nographics: bool = True, *, auto
         # ADB_SERVER_SOCKET points at.
         command = f"env -u ADB_SERVER_SOCKET {command}"
     return command
-
-
-def find_unity_editor(project_path: Path) -> str:
-    try:
-        editor = find_editor_for_version(read_editor_version(project_path))
-    except ValueError as error:
-        raise SystemExit(str(error)) from error
-    return str(editor)
 
 
 def read_editor_version(project_path: Path) -> str:
@@ -157,17 +162,3 @@ def prepare_unity_project(project_path: Path) -> None:
 
     bash("dotnet tool restore")
     bash(f"dotnet nugetforunity restore {project_path}")
-
-
-def quiet_failure_block(log_path: Path) -> str | None:
-    lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
-    for index, line in enumerate(lines):
-        if not any(signature in line for signature in QUIET_FAILURE_SIGNATURES):
-            continue
-        block: list[str] = []
-        for candidate in lines[index : index + QUIET_FAILURE_BLOCK_LINE_LIMIT]:
-            if block and not candidate.strip():
-                break
-            block.append(candidate)
-        return "\n".join(block)
-    return None
