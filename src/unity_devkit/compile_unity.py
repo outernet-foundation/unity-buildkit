@@ -10,7 +10,9 @@ app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 @app.command()
 def compile_unity(
-    project: Annotated[str, typer.Option(help="Unity project name (directory containing unity-build.json)")],
+    project: Annotated[
+        str, typer.Option(help="Unity project name (directory containing ProjectSettings/ProjectVersion.txt)")
+    ],
     build: Annotated[str, typer.Option(help="Build target from the project's builds list (e.g. android-mobile)")],
 ) -> None:
     for artifact in build_unity_project(project, build):

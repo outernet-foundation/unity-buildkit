@@ -13,7 +13,9 @@ app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 @app.command()
 def main(
-    project: Annotated[str, typer.Option(help="Unity project name (directory containing unity-build.json)")],
+    project: Annotated[
+        str, typer.Option(help="Unity project name (directory containing ProjectSettings/ProjectVersion.txt)")
+    ],
     test_platform: Annotated[str, typer.Option(help="Unity test platform (EditMode or PlayMode)")] = "EditMode",
     results: Annotated[Path, typer.Option(help="Output path for NUnit XML results")] = Path(
         "artifacts/unity-test-results.xml"

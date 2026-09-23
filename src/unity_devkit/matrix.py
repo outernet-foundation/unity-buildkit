@@ -26,6 +26,10 @@ def main() -> None:
                 "editor-image": f"unityci/editor:{version}-{module}-{UNITYCI_IMAGE_REVISION}",
             })
 
+    if not editor_versions:
+        raise SystemExit(
+            "No projects with builds declared — unity-matrix needs at least one unity-build.json with a 'builds' list"
+        )
     license_version = max(editor_versions)
     print(f"matrix={json.dumps({'include': matrix})}")
     print(f"license-image=unityci/editor:{license_version}-{LICENSE_MODULE}-{UNITYCI_IMAGE_REVISION}")

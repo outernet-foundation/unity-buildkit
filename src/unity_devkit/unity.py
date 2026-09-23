@@ -141,13 +141,18 @@ def resolve_unity_build(project: str, build: str) -> tuple[UnityProject, str, st
 
     project_config = projects[project]
     valid_builds = project_config.builds or []
+    if not valid_builds:
+        raise SystemExit(
+            f"Project '{project}' declares no builds — add a unity-build.json with a 'builds' list to {project_config.path}"
+        )
     if build not in valid_builds:
-        valid = ", ".join(valid_builds) or "(none defined)"
-        raise SystemExit(f"Unknown build '{build}' for project '{project}'. Valid: {valid}")
+        raise SystemExit(f"Unknown build '{build}' for project '{project}'. Valid: {', '.join(valid_builds)}")
 
     execute_method = (project_config.execute_methods or {}).get(build)
     if not execute_method:
-        raise SystemExit(f"No execute method for project '{project}' build '{build}'")
+        raise SystemExit(
+            f"No execute method for '{build}' — declare 'execute_methods' in {project_config.path / 'unity-build.json'}"
+        )
 
     if build not in PLATFORM_CONFIGS:
         raise SystemExit(f"No platform config for build '{build}'. Valid: {', '.join(PLATFORM_CONFIGS)}")
