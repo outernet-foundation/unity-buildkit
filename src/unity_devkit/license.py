@@ -24,7 +24,8 @@ settings = Settings.model_validate({})
 activate_app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 
-def activate(oras_push: bool) -> None:
+@activate_app.command()
+def activate_main(oras_push: bool = typer.Option(False, help="Push activated ULF to ORAS cache")) -> None:
     configure_git(settings.github_workspace)
     install_oras()
 
@@ -44,8 +45,3 @@ def activate(oras_push: bool) -> None:
 
     if oras_push and not cache_hit:
         save(settings.cache_registry, "unity-license", tag, license_directory, ["Unity_lic.ulf"])
-
-
-@activate_app.command()
-def activate_main(oras_push: bool = typer.Option(False, help="Push activated ULF to ORAS cache")) -> None:
-    activate(oras_push)

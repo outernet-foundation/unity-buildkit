@@ -18,68 +18,6 @@ CACHE_ROOT = Path.home() / ".unity-devkit" / "builds"
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 
-def _resolve_project(projects: dict[str, UnityProject], name: str) -> str:
-    for project_name in projects:
-        if project_name.lower() == name.lower():
-            return project_name
-    valid = ", ".join(projects.keys())
-    raise typer.BadParameter(f"Unknown project '{name}'. Valid projects: {valid}")
-
-
-def _resolve_target(project_config: UnityProject, project_name: str, target: str | None) -> str:
-    installable = [build for build in (project_config.builds or []) if build in INSTALLABLE_TARGETS]
-    if target is None:
-        if len(installable) == 1:
-            return installable[0]
-        valid = ", ".join(installable) if installable else "(none)"
-        raise typer.BadParameter(
-            f"--target is required for {project_name} (multiple installable targets). Valid targets: {valid}"
-        )
-    for build in installable:
-        if build.lower() == target.lower():
-            return build
-    valid = ", ".join(installable)
-    raise typer.BadParameter(f"No installable target '{target}' for {project_name}. Valid targets: {valid}")
-
-
-def _current_git_branch() -> str:
-    branch = bash_output("git rev-parse --abbrev-ref HEAD").strip()
-    if branch == "HEAD":
-        raise typer.BadParameter("HEAD is detached; pass --branch explicitly")
-    return branch
-
-
-def _find_run_id(artifact_name: str, branch: str) -> str:
-    owner_repo = bash_output("gh repo view --json nameWithOwner --jq .nameWithOwner").strip()
-    output = bash_output(
-        f"gh api repos/{owner_repo}/actions/artifacts --method GET -f name={artifact_name} -f per_page=10 --jq .artifacts"
-    )
-    artifacts: list[dict[str, Any]] = json.loads(output)
-    for artifact in artifacts:
-        if artifact["workflow_run"]["head_branch"] == branch:
-            return str(artifact["workflow_run"]["id"])
-    print(f"No artifact '{artifact_name}' found on branch '{branch}'")
-    raise SystemExit(1)
-
-
-def _download_artifact(run_id: str, artifact_name: str) -> Path:
-    cache_path = CACHE_ROOT / run_id / artifact_name
-    if cache_path.is_dir() and any(cache_path.iterdir()):
-        print(f"Using cached artifact: {cache_path}")
-        return cache_path
-    cache_path.mkdir(parents=True, exist_ok=True)
-    bash(f"gh run download {run_id} --name {artifact_name} --dir {cache_path}")
-    return cache_path
-
-
-def _find_linux_executable(artifact_path: Path) -> Path:
-    for item in artifact_path.iterdir():
-        if item.is_file() and (artifact_path / f"{item.stem}_Data").is_dir():
-            return item
-    print("No linux64 executable found in artifact (expected a file with a matching _Data/ directory)")
-    raise SystemExit(1)
-
-
 @app.command()
 def main(
     project: Annotated[str, typer.Option("--project", "-p", help="Unity project name")],
@@ -167,3 +105,65 @@ def main(
         os.chmod(executable, executable.stat().st_mode | 0o755)
         print(f"Launching: {executable.name}")
         bash_handoff(str(executable))
+
+
+def _resolve_project(projects: dict[str, UnityProject], name: str) -> str:
+    for project_name in projects:
+        if project_name.lower() == name.lower():
+            return project_name
+    valid = ", ".join(projects.keys())
+    raise typer.BadParameter(f"Unknown project '{name}'. Valid projects: {valid}")
+
+
+def _resolve_target(project_config: UnityProject, project_name: str, target: str | None) -> str:
+    installable = [build for build in (project_config.builds or []) if build in INSTALLABLE_TARGETS]
+    if target is None:
+        if len(installable) == 1:
+            return installable[0]
+        valid = ", ".join(installable) if installable else "(none)"
+        raise typer.BadParameter(
+            f"--target is required for {project_name} (multiple installable targets). Valid targets: {valid}"
+        )
+    for build in installable:
+        if build.lower() == target.lower():
+            return build
+    valid = ", ".join(installable)
+    raise typer.BadParameter(f"No installable target '{target}' for {project_name}. Valid targets: {valid}")
+
+
+def _current_git_branch() -> str:
+    branch = bash_output("git rev-parse --abbrev-ref HEAD").strip()
+    if branch == "HEAD":
+        raise typer.BadParameter("HEAD is detached; pass --branch explicitly")
+    return branch
+
+
+def _find_run_id(artifact_name: str, branch: str) -> str:
+    owner_repo = bash_output("gh repo view --json nameWithOwner --jq .nameWithOwner").strip()
+    output = bash_output(
+        f"gh api repos/{owner_repo}/actions/artifacts --method GET -f name={artifact_name} -f per_page=10 --jq .artifacts"
+    )
+    artifacts: list[dict[str, Any]] = json.loads(output)
+    for artifact in artifacts:
+        if artifact["workflow_run"]["head_branch"] == branch:
+            return str(artifact["workflow_run"]["id"])
+    print(f"No artifact '{artifact_name}' found on branch '{branch}'")
+    raise SystemExit(1)
+
+
+def _download_artifact(run_id: str, artifact_name: str) -> Path:
+    cache_path = CACHE_ROOT / run_id / artifact_name
+    if cache_path.is_dir() and any(cache_path.iterdir()):
+        print(f"Using cached artifact: {cache_path}")
+        return cache_path
+    cache_path.mkdir(parents=True, exist_ok=True)
+    bash(f"gh run download {run_id} --name {artifact_name} --dir {cache_path}")
+    return cache_path
+
+
+def _find_linux_executable(artifact_path: Path) -> Path:
+    for item in artifact_path.iterdir():
+        if item.is_file() and (artifact_path / f"{item.stem}_Data").is_dir():
+            return item
+    print("No linux64 executable found in artifact (expected a file with a matching _Data/ directory)")
+    raise SystemExit(1)

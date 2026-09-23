@@ -8,6 +8,15 @@ from .unity import prepare_unity_project, resolve_unity_build, run_unity_batchmo
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 
+@app.command()
+def compile_unity(
+    project: Annotated[str, typer.Option(help="Unity project name (directory containing unity-build.json)")],
+    build: Annotated[str, typer.Option(help="Build target from the project's builds list (e.g. android-mobile)")],
+) -> None:
+    for artifact in build_unity_project(project, build):
+        print(f"Built: {artifact}")
+
+
 def build_unity_project(project: str, build: str) -> list[Path]:
     project_config, build_flag, execute_method = resolve_unity_build(project, build)
     project_path = project_config.path
@@ -27,15 +36,6 @@ def build_unity_project(project: str, build: str) -> list[Path]:
             "output under Build/ and the project's Library/Bee/.../build/ tree, then retry."
         )
     return produced
-
-
-@app.command()
-def compile_unity(
-    project: Annotated[str, typer.Option(help="Unity project name (directory containing unity-build.json)")],
-    build: Annotated[str, typer.Option(help="Build target from the project's builds list (e.g. android-mobile)")],
-) -> None:
-    for artifact in build_unity_project(project, build):
-        print(f"Built: {artifact}")
 
 
 def snapshot_artifacts(build_directory: Path) -> dict[Path, int]:
