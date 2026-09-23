@@ -165,5 +165,9 @@ def prepare_unity_project(project_path: Path) -> None:
     if stale_lockfile.exists():
         stale_lockfile.unlink()
 
-    bash("dotnet tool restore")
-    bash(f"dotnet nugetforunity restore {project_path}")
+    # NuGetForUnity restore applies only to NuGet consumers (Assets/packages.config is
+    # their manifest); elsewhere it would demand the dotnet SDK + tool manifest and
+    # litter Assets/ with NuGet.config/packages.config/Packages.meta scaffolding.
+    if (project_path / "Assets" / "packages.config").exists():
+        bash("dotnet tool restore")
+        bash(f"dotnet nugetforunity restore {project_path}")
