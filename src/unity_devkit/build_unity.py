@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from bashrun.bash import bash_output
 from pydantic_settings import BaseSettings
 
 from ci_devkit.cache import restore, save
@@ -15,14 +16,11 @@ from .license_restore import restore_license
 from ci_devkit.setup import configure_git, install_dotnet
 from ci_devkit.setup_oras import install_oras
 from .unity import prepare_unity_project, resolve_unity_build, run_unity_batchmode
-from ci_devkit.git_tags import get_latest_tag_version
 
 
 class Settings(BaseSettings):
     github_workspace: str
 
-
-settings = Settings.model_validate({})
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -40,6 +38,8 @@ def main(
         str, typer.Option(help="Newline-separated KEY=VALUE pairs injected into the Unity build process environment")
     ] = "",
 ) -> None:
+    settings = Settings.model_validate({})
+
     for line in build_env.splitlines():
         entry = line.strip()
         if not entry:
@@ -77,7 +77,7 @@ def main(
     with ci_step(f"Build {project} [{platform}]"):
         tag_prefix = project_config.tag_prefix
         if tag_prefix:
-            version = get_latest_tag_version(f"{tag_prefix}-v") or "0.0.0"
+            version = latest_tag_version(f"{tag_prefix}-v") or "0.0.0"
             full_version = f"{version}-dev+{run_number}" if branch != "main" else f"{version}+{run_number}"
             version_file = unity_project_path / ".build-version.json"
             version_file.write_text(json.dumps({"version": full_version, "runNumber": run_number}))
@@ -104,3 +104,10 @@ def main(
                 for file in build_directory.rglob("*"):
                     if file.suffix in {".apk", ".exe"}:
                         shutil.copy2(file, artifact_directory / file.name)
+
+
+def latest_tag_version(prefix: str) -> str | None:
+    output = bash_output(f'git tag --list "{prefix}*" --sort=-v:refname').strip()
+    if not output:
+        return None
+    return output.splitlines()[0][len(prefix) :]
