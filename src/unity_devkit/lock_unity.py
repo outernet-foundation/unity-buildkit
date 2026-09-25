@@ -2,7 +2,7 @@ from typing import Annotated
 
 import typer
 
-from .projects import load_unity_projects
+from .projects import load_catalog
 from .unity import prepare_unity_project, run_unity_batchmode
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
@@ -10,7 +10,7 @@ app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 @app.command()
 def lock_unity(project: Annotated[str | None, typer.Option(help="Limit to a specific project.")] = None) -> None:
-    config = load_unity_projects()
+    config = load_catalog()
 
     if project is not None and project not in config:
         raise typer.BadParameter(f"Unknown project '{project}'. Valid: {', '.join(config)}")

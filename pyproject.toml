@@ -1,7 +1,7 @@
 [project]
 name = "unity-devkit"
 version = "0.0.0.dev0"
-description = "Unity project discovery, build, license, and CI tooling"
+description = "Unity build, license, and CI tooling"
 requires-python = ">=3.13"
 dependencies = [
     "bashrun>=0.1.0",

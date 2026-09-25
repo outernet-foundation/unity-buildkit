@@ -66,11 +66,15 @@ def main(
     with ci_step("Prepare build"):
         project_config, build_flag, execute_method = resolve_unity_build(project, platform)
         unity_project_path = project_config.path
+        if unity_project_path.resolve() != project_path.resolve():
+            raise SystemExit(
+                f"--project-path {project_path} does not match catalog entry '{project}' at {unity_project_path}"
+            )
 
     with ci_step("Prepare project"):
         prepare_unity_project(unity_project_path)
 
-    with ci_step(f"Build {unity_project_path.name} [{platform}]"):
+    with ci_step(f"Build {project} [{platform}]"):
         tag_prefix = project_config.tag_prefix
         if tag_prefix:
             version = get_latest_tag_version(f"{tag_prefix}-v") or "0.0.0"

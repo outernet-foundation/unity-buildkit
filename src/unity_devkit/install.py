@@ -9,7 +9,7 @@ import typer
 from bashrun.bash import bash, bash_check, bash_handoff, bash_output
 
 from .compile_unity import build_unity_project
-from .projects import load_unity_projects
+from .projects import load_catalog
 
 INSTALLABLE_TARGETS = {"android-mobile", "magicleap", "linux64"}
 ADB_TARGETS = {"android-mobile", "magicleap"}
@@ -37,7 +37,7 @@ def main(
             "--no-grant-permissions",
             help=(
                 "Skip the post-install `adb shell pm grant` calls listed under `grant_permissions` "
-                "for the project in its unity-build.json manifest. Permissions are granted by default."
+                "for the project's entry in unity-devkit.json. Permissions are granted by default."
             ),
         ),
     ] = False,
@@ -53,7 +53,7 @@ def main(
         ),
     ] = False,
 ) -> None:
-    projects = load_unity_projects()
+    projects = load_catalog()
 
     project_name = next((name for name in projects if name.lower() == project.lower()), None)
     if project_name is None:
@@ -156,7 +156,7 @@ def main(
         if permissions and not no_grant_permissions:
             if not package:
                 raise typer.BadParameter(
-                    f"{project_name} has grant_permissions but no 'package' field in unity-build.json"
+                    f"{project_name} has grant_permissions but no 'package' field in its unity-devkit.json entry"
                 )
             for permission in permissions:
                 print(f"Granting {permission} to {package}")

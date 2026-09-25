@@ -6,7 +6,7 @@ from typing import TypedDict
 
 from bashrun.bash import CalledProcessError, bash, bash_pipe
 
-from .projects import UnityProject, load_unity_projects
+from .projects import CatalogEntry, load_catalog
 
 
 class PlatformConfig(TypedDict):
@@ -134,8 +134,8 @@ def editor_version(project_path: Path) -> str | None:
     return None
 
 
-def resolve_unity_build(project: str, build: str) -> tuple[UnityProject, str, str]:
-    projects = load_unity_projects()
+def resolve_unity_build(project: str, build: str) -> tuple[CatalogEntry, str, str]:
+    projects = load_catalog()
     if project not in projects:
         raise SystemExit(f"Unknown project '{project}'. Valid: {', '.join(projects)}")
 
@@ -143,7 +143,7 @@ def resolve_unity_build(project: str, build: str) -> tuple[UnityProject, str, st
     valid_builds = project_config.builds or []
     if not valid_builds:
         raise SystemExit(
-            f"Project '{project}' declares no builds — add a unity-build.json with a 'builds' list to {project_config.path}"
+            f"Project '{project}' declares no builds — add a 'builds' list to its entry in unity-devkit.json"
         )
     if build not in valid_builds:
         raise SystemExit(f"Unknown build '{build}' for project '{project}'. Valid: {', '.join(valid_builds)}")
@@ -151,7 +151,7 @@ def resolve_unity_build(project: str, build: str) -> tuple[UnityProject, str, st
     execute_method = (project_config.execute_methods or {}).get(build)
     if not execute_method:
         raise SystemExit(
-            f"No execute method for '{build}' — declare 'execute_methods' in {project_config.path / 'unity-build.json'}"
+            f"No execute method for '{build}' — declare it under 'execute_methods' for '{project}' in unity-devkit.json"
         )
 
     if build not in PLATFORM_CONFIGS:

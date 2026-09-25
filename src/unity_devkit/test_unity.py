@@ -5,7 +5,7 @@ from typing import Annotated
 
 import typer
 
-from .projects import load_unity_projects
+from .projects import load_catalog
 from .unity import run_unity_batchmode
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
@@ -13,15 +13,13 @@ app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 @app.command()
 def main(
-    project: Annotated[
-        str, typer.Option(help="Unity project name (directory containing ProjectSettings/ProjectVersion.txt)")
-    ],
+    project: Annotated[str, typer.Option(help="Unity project name (catalog key in unity-devkit.json)")],
     test_platform: Annotated[str, typer.Option(help="Unity test platform (EditMode or PlayMode)")] = "EditMode",
     results: Annotated[Path, typer.Option(help="Output path for NUnit XML results")] = Path(
         "artifacts/unity-test-results.xml"
     ),
 ) -> None:
-    projects = load_unity_projects()
+    projects = load_catalog()
     if project not in projects:
         raise SystemExit(f"Unknown project '{project}'. Valid: {', '.join(projects)}")
 

@@ -1,55 +1,50 @@
-import json
 import os
 from collections.abc import Iterator
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, field_validator
 
-MANIFEST_FILENAME = "unity-build.json"
+CATALOG_FILENAME = "unity-devkit.json"
 PROJECT_MARKER = Path("ProjectSettings") / "ProjectVersion.txt"
 PRUNE_DIRECTORIES = {".git", "Library", "Temp", "obj", "Build", "node_modules", "__pycache__"}
 
 
-class UnityBuildManifest(BaseModel, extra="forbid"):
+class CatalogEntry(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    path: Path
     builds: list[str] | None = None
     execute_methods: dict[str, str] | None = None
     package: str | None = None
-    grant_permissions: list[str] = []
+    grant_permissions: list[str] = Field(default_factory=list)
     tag_prefix: str | None = None
 
+    @field_validator("path")
+    @classmethod
+    def anchor_relative_path(cls, value: Path) -> Path:
+        return value if value.is_absolute() else Path.cwd() / value
 
-class UnityProject(UnityBuildManifest):
-    path: Path
+
+CATALOG_ADAPTER = TypeAdapter(dict[str, CatalogEntry])
 
 
-def load_unity_projects() -> dict[str, UnityProject]:
-    root = Path.cwd()
-    project_directories = {directory.resolve() for directory in unity_project_directories(root)}
-    manifest_directories = {directory.resolve() for directory in directories_containing(root, MANIFEST_FILENAME)}
-
-    projects: dict[str, UnityProject] = {}
-    for project_path in sorted(project_directories | manifest_directories):
-        if project_path not in project_directories:
-            raise SystemExit(
-                f"{project_path / MANIFEST_FILENAME} is not inside a Unity project: missing {PROJECT_MARKER}"
-            )
-
-        manifest_path = project_path / MANIFEST_FILENAME
-        if manifest_path.exists():
-            manifest = UnityBuildManifest(**json.loads(manifest_path.read_text()))
-        else:
-            manifest = UnityBuildManifest()
-
-        name = project_path.name
-        if name in projects:
-            raise SystemExit(f"Duplicate Unity project name '{name}': {projects[name].path} and {project_path}")
-        projects[name] = UnityProject(path=project_path, **manifest.model_dump())
-
-    if not projects:
+def load_catalog() -> dict[str, CatalogEntry]:
+    catalog_path = Path.cwd() / CATALOG_FILENAME
+    if not catalog_path.is_file():
         raise SystemExit(
-            f"No Unity projects found under {root} — a project is a directory containing {PROJECT_MARKER}. Run from the repo root"
+            f"No {CATALOG_FILENAME} catalog at {catalog_path} — declare Unity projects as catalog entries at the repo root"
         )
-    return projects
+
+    catalog = CATALOG_ADAPTER.validate_json(catalog_path.read_text(encoding="utf-8"))
+    if not catalog:
+        raise SystemExit(f"{catalog_path} declares no projects — at least one catalog entry is required")
+
+    for name, entry in catalog.items():
+        if not (entry.path / PROJECT_MARKER).is_file():
+            raise SystemExit(
+                f"Catalog entry '{name}' points at {entry.path}, which is not a Unity project: missing {PROJECT_MARKER}"
+            )
+    return catalog
 
 
 def visible_directories(root: Path) -> Iterator[Path]:
@@ -58,10 +53,6 @@ def visible_directories(root: Path) -> Iterator[Path]:
             name for name in subdirectories if name not in PRUNE_DIRECTORIES and not name.startswith(".")
         )
         yield Path(directory)
-
-
-def unity_project_directories(root: Path) -> list[Path]:
-    return [directory for directory in visible_directories(root) if (directory / PROJECT_MARKER).is_file()]
 
 
 def directories_containing(root: Path, filename: str) -> list[Path]:
