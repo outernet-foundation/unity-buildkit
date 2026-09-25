@@ -1,6 +1,6 @@
 # unity-devkit
 
-Unity project discovery, local builds, CI builds, license activation, and the shared CI helpers those need. Projects are discovered structurally: any directory containing `ProjectSettings/ProjectVersion.txt` (the marker Unity itself writes) is a project; a `unity-build.json` manifest beside it optionally declares build intent (`builds`, `execute_methods`, `package`, `grant_permissions`, `tag_prefix`). Path-only commands (`lock-unity`, `test-unity`) work on any discovered project; build commands require the manifest's fields. Paired with the reusable [`unity-build.yml`](https://github.com/outernet-foundation/unity-devkit/blob/main/.github/workflows/unity-build.yml) GitHub Actions workflow hosted here — consumers call it cross-repo pinned to a pushed SHA with `secrets: inherit`.
+Unity build, license, and CI tooling. Projects are declared in a root `unity-devkit.json` catalog: each entry maps a stable project name to its path plus optional build intent (`builds`, `execute_methods`, `package`, `grant_permissions`, `tag_prefix`). Every command resolves projects through the catalog — absence from the catalog is the exclusion mechanism — and `ProjectSettings/ProjectVersion.txt` inside each project remains the editor-version truth. Paired with the reusable [`unity-build.yml`](https://github.com/outernet-foundation/unity-devkit/blob/main/.github/workflows/unity-build.yml) GitHub Actions workflow hosted here — consumers call it cross-repo pinned to a pushed SHA with `secrets: inherit`.
 
 ## Setup
 
@@ -12,7 +12,7 @@ uv sync
 
 ## Commands
 
-Run from a repo root containing one or more Unity projects (directories with `ProjectSettings/ProjectVersion.txt`).
+Run from a repo root with a `unity-devkit.json` catalog declaring its Unity projects.
 
 | `uv run <name>` | What it does |
 |---|---|
@@ -36,7 +36,7 @@ Install from PyPI:
 dependencies = ["unity-devkit>=0.1.0"]
 ```
 
-Then `uv run compile-unity`, `uv run install`, etc. work from that repo against its own Unity projects (add a `unity-build.json` where build intent is needed). To test an unreleased change, pin the repo at a git ref in a scratch branch instead (`unity-devkit = { git = "…", rev = "<sha>" }` under `[tool.uv.sources]`) and drop the pin when the release lands.
+Then `uv run compile-unity`, `uv run install`, etc. work from that repo against its own Unity projects — declare them in a root `unity-devkit.json` catalog (entries need `builds` + `execute_methods` where build intent is needed). To test an unreleased change, pin the repo at a git ref in a scratch branch instead (`unity-devkit = { git = "…", rev = "<sha>" }` under `[tool.uv.sources]`) and drop the pin when the release lands.
 
 ## Development
 
